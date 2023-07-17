@@ -6,5 +6,5 @@ export const enum ItemRarity {
   BigShit,
   LargeShit,
   Goldenshit,
-  Rust
+  Rust,
 }

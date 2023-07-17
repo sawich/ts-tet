@@ -1,13 +1,12 @@
-import { Memory } from "../memory";
-import { Statistics } from "../statistics";
-import { COMPONENT_TYPE_ID_PROPERTY } from "./defines";
+import { Log } from '@/log';
+import { Statistics } from '../statistics';
+import { COMPONENT_TYPE_ID_PROPERTY } from './defines';
 
-export function component<T extends { new(...args: any[]): {} }>(constructor: T) {
-  console.log(`register component: ${constructor.name}`);
+export function ComponentDecorator<T extends { new(...args: never[]): unknown }>(constructor: T) {
+  const value = Statistics.RegisterComponent();
 
-  const id = Memory.instance.components.push([]);
+  Log.ECS.debug(`register component: ${constructor.name} with id [${value}]`);
 
-  return class extends constructor {
-    [COMPONENT_TYPE_ID_PROPERTY] = id;
-  };
+  const key = COMPONENT_TYPE_ID_PROPERTY;
+  Reflect.defineProperty(constructor.prototype, key, { enumerable: false, value });
 }

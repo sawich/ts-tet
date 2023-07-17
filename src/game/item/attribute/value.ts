@@ -1,4 +1,4 @@
-import { ItemAttributeValueType } from "./value-type";
+import { ItemAttributeValueType } from './value-type';
 
 /**
  * @class
@@ -6,5 +6,8 @@ import { ItemAttributeValueType } from "./value-type";
  * @kind Атака у меча, защита у брони, значение какого-то эффека (сопротивление (резист) к написанию кода в ООП стиле)
  */
 export class ItemAttributeValue {
-  public constructor(public value: number, public readonly type: ItemAttributeValueType = ItemAttributeValueType.Number) { }
+  public constructor(
+    public value: number,
+    public readonly type: ItemAttributeValueType = ItemAttributeValueType.Number,
+  ) { }
 }

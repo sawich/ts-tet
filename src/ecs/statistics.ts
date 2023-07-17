@@ -1,17 +1,18 @@
 export class Statistics {
   private components: number = 0;
 
-  private static instance = new Statistics()
+  private static instance = new Statistics();
 
   public static RegisterComponent(): number {
-    return Statistics.instance.registerComponent()
+    return Statistics.instance.registerComponent();
   }
 
   public static get ComponentsCount(): number {
-    return Statistics.instance.components
+    return Statistics.instance.components;
   }
 
   private registerComponent(): number {
-    return this.components++;
+    this.components += 1;
+    return this.components;
   }
 }

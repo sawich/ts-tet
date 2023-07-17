@@ -10,5 +10,5 @@ export const enum ItemValue {
   Armor_棉花沼泽,
 
   Weapon_棉花沼泽汪,
-  Weapon_棉花沼泽纬
+  Weapon_棉花沼泽纬,
 }

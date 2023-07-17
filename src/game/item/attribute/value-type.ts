@@ -3,5 +3,5 @@
  */
 export const enum ItemAttributeValueType {
   Number,
-  Percent
+  Percent,
 }

@@ -1,31 +1,46 @@
-import { DebugEcs } from "@/debug/ecs";
-import { Memory } from "./memory";
-import { type Component, COMPONENT_TYPE_ID_PROPERTY, type ComponentSignature } from "./decorators/defines";
+import { Debug } from '@/debug';
+
+import type { TComponentInstance, TComponentPrototype, TComponentSignature } from './decorators/defines';
+import type { ComponentRegistry } from './component-registry';
 
 export class Entity {
-  public constructor(public readonly id: number, private readonly memory: Memory) { }
-
-  public move<T extends object>(component: T): T {
-    return this._set(component as Component);
+  public constructor(public readonly id: number, private readonly components: ComponentRegistry) {
+    this.components.entityAdd();
   }
 
-  public set<T extends ComponentSignature>(type: T, ...params: ConstructorParameters<typeof type>): InstanceType<T> {
-    const component = new type(...params);
-    return this._set(component as Component);
+  public destroy() {
+    this.components.entityRemove(this.id);
   }
 
-  public get<T extends ComponentSignature>(type: ComponentSignature): T {
-    return {} as T
+  public move<T>(component: T): T {
+    return this.internalSet(component as TComponentInstance<T>);
   }
 
-  public hasNot<T extends object>(): boolean { return false; }
-  public has<T extends object>(): boolean { return true; }
+  public set<T extends TComponentSignature>(
+    ComponentConstructor: T,
+    ...params: ConstructorParameters<typeof ComponentConstructor>
+  ): InstanceType<T> {
+    const component = new ComponentConstructor(...params) as TComponentInstance<InstanceType<T>>;
+    return this.internalSet(component);
+  }
 
-  private _set<T>(component: Component): T {
-    DebugEcs.ensureObjectIsComponent(component);
-    const id = component[COMPONENT_TYPE_ID_PROPERTY];
+  public get<T extends TComponentSignature>(ComponentConstructor: T): InstanceType<T> {
+    /* eslint max-len: off */
+    const component = this.components.componentGet(this.id, ComponentConstructor) as TComponentPrototype<InstanceType<T>>;
+    return component;
+  }
 
-    this.memory.components[id].push(component);
-    return component as T
+  public hasNot<T>(component: TComponentPrototype<T>): boolean {
+    return !this.components.componetExists(this.id, component);
+  }
+
+  public has<T extends object>(component: T): boolean {
+    return this.components.componetExists(this.id, component as TComponentPrototype<T>);
+  }
+
+  private internalSet<T>(component: TComponentInstance<T>): T {
+    Debug.Ecs.ensureObjectIsComponent(component);
+
+    return this.components.componentSet(this.id, component);
   }
 }

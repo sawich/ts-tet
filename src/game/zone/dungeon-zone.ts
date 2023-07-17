@@ -1,11 +1,16 @@
-import { Registry } from "../../ecs/registry";
-import { ActorComponents } from "../components/actor";
-import { InventoryComponents } from "../components/inventory";
-import { ItemCompositor } from "../compositor/item";
-import { ItemValue } from "../item/item-value";
+import { Log } from '@/log';
+import { Registry } from '../../ecs/registry';
+import { ItemValue } from '../item/item-value';
+import { ItemCompositor } from '../compositor/item';
+import { ItemComponents } from '../components/item';
+import { ActorComponents } from '../components/actor';
+import { InventoryComponents } from '../components/inventory';
+
+import type { Entity } from '@/ecs/entity';
 
 export class DungeonZone {
   private readonly hero;
+
   private readonly enemy;
 
   public constructor(private readonly registry: Registry) {
@@ -13,37 +18,53 @@ export class DungeonZone {
     this.enemy = this.createEnemy();
   }
 
+  public battle() {
+    const wannaFightWithMe = () => {
+      if (DungeonZone.TakeDamage(this.hero, this.enemy)) {
+        Log.ZONE.info(`${this.hero.get(ActorComponents.Creature).name} died`);
+        Log.ZONE.info(`${this.enemy.get(ActorComponents.Creature).name} WIN`);
+        return;
+      }
+
+      setTimeout(wannaFightWithMe, 150);
+    };
+
+    wannaFightWithMe();
+  }
+
   private createHero() {
-    const hero = this.registry.createEntity()
-    hero.set(ActorComponents.Creature, 'Bboris Britva');
+    const entity = this.registry.createEntity();
+    entity.set(ActorComponents.Creature, 'Boris Britva');
+    entity.set(InventoryComponents.Backpack, this.registry, 12, 6);
+    entity.set(ActorComponents.Stats);
 
-    const inventory = hero.set(InventoryComponents.Backpack, this.registry, 12, 6)
-    inventory.put(ItemCompositor.createWeapon(this.registry, ItemValue.Weapon_棉花沼泽汪))
+    const eqipment = entity.set(InventoryComponents.EquipmentBackpack, this.registry);
+    eqipment.weapon = ItemCompositor.createWeapon(this.registry, ItemValue.Weapon_棉花沼泽汪);
 
-    return hero;
+    return entity;
   }
 
   private createEnemy() {
-    const enemy = this.registry.createEntity()
-    enemy.set(ActorComponents.Creature, 'Object-oriented programming');
+    const entity = this.registry.createEntity();
+    entity.set(ActorComponents.Creature, 'Object-oriented programming');
+    entity.set(InventoryComponents.SimpleBackpack, this.registry);
+    entity.set(ActorComponents.Stats);
 
-    const inventory = enemy.set(InventoryComponents.SimpleBackpack, this.registry);
-    inventory.put(ItemCompositor.createWeapon(this.registry, ItemValue.Weapon_棉花沼泽纬))
+    const eqipment = entity.set(InventoryComponents.EquipmentBackpack, this.registry);
+    eqipment.weapon = ItemCompositor.createWeapon(this.registry, ItemValue.Weapon_棉花沼泽纬);
 
-    // здесь в инвентарь кладём какие-то шмотки которые потом дровнутся с моба
-    // можно в рантайме после смерти делать, как угожно
-
-    return enemy;
+    return entity;
   }
 
-  battle() {
+  private static TakeDamage(left: Entity, right: Entity): boolean {
+    const equip = left.get(InventoryComponents.EquipmentBackpack);
+    const stats = right.get(ActorComponents.Stats);
 
-    /**
-     * Нужна консультация, я хз как делается бой)))
-     * Не из-за ECS, а в целом
-     */
+    const weapon = equip.weapon.get(ItemComponents.Weapon);
+    stats.health -= weapon.attack;
 
-    this.hero;
-    this.enemy;
+    Log.ZONE.debug(`current health: ${stats.health}`);
+
+    return stats.health <= 0;
   }
 }
